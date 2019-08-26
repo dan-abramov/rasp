@@ -1,0 +1,10 @@
+<div class="container">
+  <% @schedule.each do |bus| %>
+    <div class="row">
+      <div class="col-6 col-md-4"><%= bus[2] %></div>
+      <div class="col-6 col-md-4"><%= bus[0] %></div>
+      <div class="col-6 col-md-4"><%= bus[1] %></div>
+    </div>
+    <br>
+  <% end %>
+</div>

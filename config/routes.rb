@@ -1,3 +1,9 @@
 Rails.application.routes.draw do
-  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
+  resources :pages do
+    get :schedule, on: :collection
+    get :stations, on: :collection
+    get :arrivals, on: :collection
+    get :results, on: :collection
+    post :get_schedule, on: :collection
+  end
 end

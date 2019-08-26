@@ -8,7 +8,9 @@
     <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="main">
+    <div class="container-fluid wrapper d-flex justify-content-center">
+      <%= yield %>
+    </div>
   </body>
 </html>
