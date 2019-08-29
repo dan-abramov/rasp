@@ -7,24 +7,8 @@ class PagesController < ApplicationController
 
   def schedule
     url = "https://api.rasp.yandex.net/v3.0/search/?from=s9739657&to=s9871163&apikey=#{Rails.application.secrets[:yandex_rasp]}&format=json"
-    response = Faraday.new(url: url) do |faraday|
-      faraday.request  :url_encoded
-      faraday.response :json, content_type: /\bjson$/
-      faraday.adapter  Faraday.default_adapter
-    end
 
-
-    response.get.body['segments'].each do |bus|
-
-      new_bus = Bus.new({ number: bus['thread']['number'] } )
-      new_bus.save
-      new_route = Route.new({ id: bus['thread']['uid'], bus_id: new_bus.id, day: 'weekday' } )
-      new_route.save
-
-
-      url = "https://api.rasp.yandex.net/v3.0/thread/?apikey=#{Rails.application.secrets[:yandex_rasp]}&format=json&uid=#{bus['thread']['uid']}&lang=ru_RU&show_systems=all"
-    end
-    @response=nil
+    # find_all_routes(url)
   end
 
   def results
@@ -69,13 +53,86 @@ class PagesController < ApplicationController
   end
 
   def get_schedule
-    find_buses(route_params['from'], route_params['to'])
+    find_schedule(route_params['from'], route_params['to'])
   end
 
   private
 
   def route_params
     params.require(:route).permit(:from, :to)
+  end
+
+  def find_schedule(from, to)
+    @schedule = []
+    from_id = BusStation.where(name: from)[0].id
+    to_id = BusStation.where(name: to)[0].id
+
+    Route.all.each do |route|
+      bus_stations_array = route.arrivals.sort_by(&:time).pluck(:bus_station_id)
+
+      from_id_index = bus_stations_array.index(from_id)
+      to_id_index = bus_stations_array.index(to_id)
+      if from_id_index && to_id_index
+        if from_id_index < to_id_index
+          departure = route.arrivals.where(bus_station_id: from_id)[0].time
+          arrival = route.arrivals.where(bus_station_id: to_id)[0].time
+          @schedule << [route.bus_number, departure, arrival]
+        end
+      end
+    end
+    @schedule = @schedule.sort_by do |time|
+      time.first
+    end
+    session[:schedule] = @schedule
+    redirect_to action: 'results'
+  end
+
+  def find_all_routes(url)
+
+    response = Faraday.new(url: url) do |faraday|
+      faraday.request  :url_encoded
+      faraday.response :json, content_type: /\bjson$/
+      faraday.adapter  Faraday.default_adapter
+    end
+
+    response.get.body['segments'].each do |bus|
+      begin
+        new_route = Route.new({ id: bus['thread']['uid'], bus_number: bus['thread']['number'], title: bus['thread']['title'], day: 'weekday' } )
+        new_route.save
+
+        url = "https://api.rasp.yandex.net/v3.0/thread/?apikey=#{Rails.application.secrets[:yandex_rasp]}&format=json&uid=#{bus['thread']['uid']}&lang=ru_RU&show_systems=all"
+
+        save_schedule(url, new_route)
+      rescue ActiveRecord::RecordNotUnique
+      end
+    end
+  end
+
+  def save_schedule(url, new_route)
+    route = Faraday.new(url: url) do |faraday|
+      faraday.request  :url_encoded
+      faraday.response :json, content_type: /\bjson$/
+      faraday.adapter  Faraday.default_adapter
+    end
+
+    route.get.body['stops'].each do |arrival|
+      @arrival = arrival
+      if arrival['departure']
+        time = arrival['departure'].split(' ')[1]
+      else
+        time = arrival['arrival'].split(' ')[1]
+      end
+
+      begin
+        bus_station = BusStation.find(arrival['station']['code'])
+      rescue ActiveRecord::RecordNotFound
+        bus_station = BusStation.new({ id: arrival['station']['code'], name: arrival['station']['title'] })
+        bus_station.save
+      end
+
+      new_arrival = Arrival.new({ time: time, bus_station_id: bus_station.id, route_id: new_route.id })
+      new_arrival.save
+    end
   end
 
   def find_buses(from, to)

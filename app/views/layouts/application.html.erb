@@ -2,10 +2,18 @@
 <html>
   <head>
     <title>Rasp</title>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=<%=Rails.application.secrets[:yandex_map]%>&lang=ru_RU" type="text/javascript">
+    </script>
     <%= csrf_meta_tags %>
 
     <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
     <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+
+
+
+    <script type="text/javascript">
+
+    </script>
   </head>
 
   <body class="main">

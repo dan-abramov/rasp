@@ -1,6 +1,6 @@
 class BusStation < ApplicationRecord
   validates :name, presence: true
+  self.primary_key = 'id'
   
   has_many :arrivals
-  has_many :buses, through: :arrivals
 end

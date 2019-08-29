@@ -17,12 +17,10 @@ ActiveRecord::Schema.define(version: 20190124142628) do
 
   create_table "arrivals", force: :cascade do |t|
     t.time "time"
-    t.bigint "bus_id"
-    t.bigint "bus_station_id"
-    t.bigint "route_id"
+    t.string "bus_station_id"
+    t.string "route_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["bus_id"], name: "index_arrivals_on_bus_id"
     t.index ["bus_station_id"], name: "index_arrivals_on_bus_station_id"
     t.index ["route_id"], name: "index_arrivals_on_route_id"
   end
@@ -35,19 +33,13 @@ ActiveRecord::Schema.define(version: 20190124142628) do
     t.index ["id"], name: "index_bus_stations_on_id", unique: true
   end
 
-  create_table "buses", force: :cascade do |t|
-    t.string "number"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "routes", id: false, force: :cascade do |t|
     t.string "id", null: false
-    t.bigint "bus_id"
     t.string "day", null: false
+    t.string "bus_number", null: false
+    t.string "title", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["bus_id"], name: "index_routes_on_bus_id"
     t.index ["id"], name: "index_routes_on_id", unique: true
   end
 
