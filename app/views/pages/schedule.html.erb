@@ -1,16 +1,16 @@
-<div style='width: 25%;'>
-  <div style='height:100px'></div>
-  <%= form_for :route, url: 'get_schedule' do |form| %>
-    <div class="form-group">
-      <%= form.text_field :from, class:"form-control", required: true %>
+<div class="display: flex; align-items: center; justify-content: center;">
+  <div style="margin-top: 25px; ">
+    <%= form_for :route, url: 'get_schedule' do |form| %>
+    <div class="form-group" style='display: inline-block'>
+      <%= form.text_field :from, class:"form-control", required: true, value: '' %>
     </div>
-    <div style='height:15px'></div>
-    <div class="form-group">
-      <%= form.text_field :to, class:"form-control", required: true %>
+    <div class="form-group" style='display: inline-block'>
+      <%= form.text_field :to, class:"form-control", required: true, value: '' %>
     </div>
-    <div style='height:15px'></div>
-    <%= form.submit 'Найти', class: "btn btn-primary", style: 'float: right;'%>
-  <% end %>
+    <%= form.submit 'Найти', class: "btn btn-primary", style: 'display: inline-block; margin-bottom: 1px;'%>
+    <% end %>
+  </div>
 </div>
-<br>
-<div id="map" style="width: 600px; height: 400px"></div>
+<div style="display: flex;align-items: center; justify-content: center;">
+  <div id="map" style=" width: 700px; height: 800px"></div>
+<div>
