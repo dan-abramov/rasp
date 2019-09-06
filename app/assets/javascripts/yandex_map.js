@@ -16,7 +16,8 @@ function init(){
     busStationArray.forEach(function(busStation) {
       var placemark = new ymaps.Placemark(busStation[1], {
             hintContent: busStation[0],
-            iconCaption: busStation[0]
+            iconCaption: busStation[0],
+            clicked: 0
       }, {
             preset: 'islands#circleIcon',
             iconColor: '#3caa3c'
@@ -31,20 +32,25 @@ function init(){
 
       placemark.events
         .add('click', function (e) {
-          if (clicked == 0) {
-            clicked ++;
+          if (e.get('target')['properties']['_data']['clicked'] == 0) {
+            e.get('target')['properties']['_data']['clicked'] = 1
+
+            if (window.last_clicked) {
+              window.last_clicked.options.set('iconColor', '#3caa3c');
+              window.last_clicked['properties']['_data']['clicked'] = 0
+              to.value = ''
+            };
 
             if (!window.first_clicked) {
-              first_clicked = e.get('target');
-              console.log(first_clicked);
+              window.first_clicked = e.get('target');
+              console.log(window.first_clicked)
               console.log("It's first clicked");
             } else if (window.first_clicked) {
-              last_clicked = e.get('target');
-              console.log(first_clicked);
+              window.last_clicked = e.get('target');
               console.log("It's last clicked");
             }
 
-            e.get('target').options.set('iconColor', 'blue'); //here changes color of placemark
+            e.get('target').options.set('iconColor', 'red'); //here changes color of placemark
 
             var station = e.get('target')['properties']['_data']['hintContent'];
 
@@ -54,8 +60,8 @@ function init(){
               to.value = station;
             };
 
-          } else if (clicked > 0) { //if it was second click on placemark....
-            clicked = 0
+          } else if (e.get('target')['properties']['_data']['clicked'] == 1) { //if it was second click on placemark....
+            e.get('target')['properties']['_data']['clicked'] = 0
             e.get('target').options.set('iconColor', '#3caa3c') //...it changed color of placemark backwards....
             var station = e.get('target')['properties']['_data']['hintContent'];
 
@@ -75,15 +81,20 @@ function init(){
               };
             });
           };
+
+
+
         })
         .add('mapchange', function(e) {
           var station = e.get('target')['properties']['_data']['hintContent'];
           form_inputs.forEach(function(input) {
             if (input.value == station) {
-              e.get('target').options.set('iconColor', 'blue');
+              e.get('target').options.set('iconColor', 'red');
               clicked = 1;
             }
           });
+
+
         });
       myMap.geoObjects.add(placemark);
     });
