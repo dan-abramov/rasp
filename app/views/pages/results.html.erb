@@ -1,15 +1,17 @@
 <br>
 <div class="container">
-  <% @schedule.each do |bus| %>
-    <div class="row" style='background-color: grey;
-                            border-radius: 10px;
-                            height: 35px;
-                            font-weight: 600;
-                            color: white'>
-      <div class="col-6 col-md-3"><%= bus[0] %></div>
-      <div class="col-6 col-md-3"><%= bus[1] %></div>
-      <div class="col-6 col-md-3"><%= bus[2] %></div>
-    </div>
-    <br>
+  <% @schedule.each do |day| %>
+    <% day.each do |bus| %>
+      <div class="row" style='background-color: grey;
+                              border-radius: 10px;
+                              height: 35px;
+                              font-weight: 600;
+                              color: white'>
+        <div class="col-6 col-md-3"><%= bus[0] %></div>
+        <div class="col-6 col-md-3"><%= bus[1] %></div>
+        <div class="col-6 col-md-3"><%= bus[2] %></div>
+      </div>
+      <br>
+    <% end %>
   <% end %>
 </div>
