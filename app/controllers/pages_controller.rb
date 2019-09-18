@@ -59,7 +59,6 @@ class PagesController < ApplicationController
     from_id = BusStation.where(name: from)[0].id
     to_id = BusStation.where(name: to)[0].id
     @days = define_days
-    pry
     @days.each do |day, day_type|
       day = day.to_s
       @schedule << return_schedule(day, day_type, from_id, to_id)

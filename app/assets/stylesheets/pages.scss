@@ -1,7 +1,18 @@
 
 
-.schedule-row {
+.test {
   background-color: black;
   height: 100px;
   width: 100px;
+}
+
+.schedule-res {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.info {
+  font-size: 15px;
+  font-weight: 600;
 }

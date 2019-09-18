@@ -1,36 +1,36 @@
-ymaps.ready(init);
-function init(){
-    var myMap = new ymaps.Map("map", {
+document.addEventListener('DOMContentLoaded', function(){
+  if (document.getElementById("map")) {
+    ymaps.ready(init);
+    function init(){
+      var myMap = new ymaps.Map("map", {
         center: [56.74258201923115, 37.15819910393005],
-        zoom: 14
-    });
-
-    var busStationArray = [['Дубна, улица Березняка', [56.763211033373835,37.144266405296484]],
-                           ['Улица Мичурина', [56.75130625311628,37.20256463324331]],
-                           ['Стадион', [56.755104548238606,37.12879606386732]],
-                           ['Площадь Мира', [56.7460098492459,37.193872913554586]],
-                           ['банк Возрождение', [56.73452866331205,37.155617206680205]],
-                           ['ТЦ "Маяк"', [56.73575303247329,37.15887567232807]],
-                           ['Тверская улица', [56.76078624285189,37.13272905214866]]]
-
-    busStationArray.forEach(function(busStation) {
-      var placemark = new ymaps.Placemark(busStation[1], {
-            hintContent: busStation[0],
-            iconCaption: busStation[0],
-            clicked: 0
-      }, {
-            preset: 'islands#circleIcon',
-            iconColor: '#3caa3c'
+        zoom: 13
       });
+      var busStationArray = [['Дубна, улица Березняка', [56.763211033373835,37.144266405296484]],
+                             ['Улица Мичурина', [56.75130625311628,37.20256463324331]],
+                             ['Стадион', [56.755104548238606,37.12879606386732]],
+                             ['Площадь Мира', [56.7460098492459,37.193872913554586]],
+                             ['банк Возрождение', [56.73452866331205,37.155617206680205]],
+                             ['ТЦ "Маяк"', [56.73575303247329,37.15887567232807]],
+                             ['Тверская улица', [56.76078624285189,37.13272905214866]]]
 
-      var clicked = 0;
-      var from = document.getElementById('route_from');
-      var to = document.getElementById('route_to');
-      var form_inputs = [from, to]
-      window.first_clicked = null
-      window.last_clicked = null
+      busStationArray.forEach(function(busStation) {
+        var placemark = new ymaps.Placemark(busStation[1], {
+          hintContent: busStation[0],
+          iconCaption: busStation[0],
+          clicked: 0
+        }, {
+          preset: 'islands#circleIcon',
+          iconColor: '#3caa3c'
+        });
 
-      placemark.events
+        var from = document.getElementById('route_from');
+        var to = document.getElementById('route_to');
+        var form_inputs = [from, to]
+        window.first_clicked = null
+        window.last_clicked = null
+
+        placemark.events
         .add('click', function (e) {
           if (e.get('target')['properties']['_data']['clicked'] == 0) {
             e.get('target')['properties']['_data']['clicked'] = 1
@@ -90,13 +90,15 @@ function init(){
           form_inputs.forEach(function(input) {
             if (input.value == station) {
               e.get('target').options.set('iconColor', 'red');
-              clicked = 1;
+              e.get('target')['properties']['_data']['clicked'] = 1;
             }
           });
 
 
         });
-      myMap.geoObjects.add(placemark);
-    });
+        myMap.geoObjects.add(placemark);
+      });
 
-};
+    };
+  };
+});
