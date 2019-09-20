@@ -1,6 +1,5 @@
 document.addEventListener('click', function (event) {
 
-	// If the clicked element doesn't have the right selector, bail
 	if (event.target.matches('.fa-exchange')) {
     var from = document.getElementById('route_from');
     var to = document.getElementById('route_to');

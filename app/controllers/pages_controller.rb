@@ -1,4 +1,6 @@
 class PagesController < ApplicationController
+  autocomplete :bus_station, :name
+
 
   def schedule
   end

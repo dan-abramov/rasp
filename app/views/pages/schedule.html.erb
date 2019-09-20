@@ -1,7 +1,7 @@
   <div style="display: flex; align-items: center; justify-content: center;margin-top: 25px; ">
     <%= form_for :route, url: 'get_schedule' do |form| %>
     <div class="form-group" style='display: inline-block'>
-      <%= form.text_field :from, class:"form-control", required: true, value: '' %>
+      <%= form.text_field :from, class:"form-control", required: true, data: { autocomplete: autocomplete_bus_station_name_pages_path } %>
     </div>
     <i class="fa fa-exchange" style='color: grey'></i>
     <div class="form-group" style='display: inline-block'>

@@ -37,6 +37,9 @@ gem 'jquery-rails'
 gem 'faraday'
 gem 'faraday_middleware'
 gem "font-awesome-rails"
+gem 'autocomplete_rails'
+gem 'jquery-rails'
+gem 'jquery-ui-rails'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
