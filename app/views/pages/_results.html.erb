@@ -1,6 +1,6 @@
 <br>
-<div class="container">
-  <a class="back-to-map" onclick="location.href='/pages/schedule'"><i class="fa fa-arrow-left"></i> Назад</a>
+<div class="container" style="padding: 50px;">
+  <!-- <a class="back-to-map" onclick="location.href='/pages/schedule'"><i class="fa fa-arrow-left"></i> Назад</a> -->
   <% @schedule.each do |day| %>
     <% day.each do |bus| %>
       <div class="row" style='border-bottom: solid grey 1px;
@@ -24,9 +24,6 @@
           <div>
             <div class="info"> <%= bus[1] %></div>
           </div>
-        </div>
-        <div class="schedule-res">
-          время в пути
         </div>
         <div class="schedule-res">
           <div class="schedule-column-annotation">

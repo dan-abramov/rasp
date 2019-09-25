@@ -1,9 +1,32 @@
+.column.information {
+  float: left;
+  width: 35%;
+}
+
+.column.map {
+  float: left;
+  width: 65%;
+}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.disabled-form {
+  border-color: transparent;
+  background-color: #e9ecef;
+}
+
+.disabled-form:hover {
+  cursor: default;
+}
 
 
-.test {
-  background-color: black;
-  height: 100px;
-  width: 100px;
+.disabled-form:focus {
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .schedule-res {
@@ -15,4 +38,9 @@
 .info {
   font-size: 15px;
   font-weight: 600;
+}
+
+.results {
+  height: calc(100vh/1.5);
+  bottom: 0;
 }

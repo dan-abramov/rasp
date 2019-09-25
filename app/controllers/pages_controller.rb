@@ -47,6 +47,9 @@ class PagesController < ApplicationController
   end
 
   def get_schedule
+    respond_to do |format|
+      format.js
+    end
     find_schedule(route_params['from'], route_params['to'])
   end
 
@@ -66,7 +69,7 @@ class PagesController < ApplicationController
       @schedule << return_schedule(day, day_type, from_id, to_id)
     end
     session[:schedule] = @schedule
-    redirect_to action: 'results'
+    # redirect_to action: 'results'
   end
 
 
