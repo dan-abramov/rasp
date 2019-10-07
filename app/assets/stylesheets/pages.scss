@@ -23,6 +23,31 @@
   cursor: default;
 }
 
+.with-delete-icon {
+  position: relative;
+}
+
+.icon-delete {
+  border: 1px;
+  border-style: solid;
+  border-color: transparent;
+  position: absolute;
+  right: 0;
+  top: 1px;
+  background-color: #d3d9df;
+  width: 40px;
+  height: 36px;
+  border-radius:0 0.25rem 0.25rem 0;
+  z-index: 1;
+}
+
+.icon-delete > div > i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #6b8094;
+}
 
 .disabled-form:focus {
   border-color: transparent;
