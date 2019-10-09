@@ -43,11 +43,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
             if (!window.first_clicked) {
               window.first_clicked = e.get('target');
-              console.log(window.first_clicked)
-              console.log("It's first clicked");
             } else if (window.first_clicked) {
               window.last_clicked = e.get('target');
-              console.log("It's last clicked");
             }
 
             e.get('target').options.set('iconColor', 'red'); //here changes color of placemark
@@ -56,8 +53,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
             if (from.value == '') { //name of station appears in form's input
               from.value = station;
+              document.getElementById('clear-input-from').setAttribute("style", "display: block");
             } else if (to.value == '') {
               to.value = station;
+              document.getElementById('clear-input-to').setAttribute("style", "display: block");
             };
 
           } else if (e.get('target')['properties']['_data']['clicked'] == 1) { //if it was second click on placemark....
