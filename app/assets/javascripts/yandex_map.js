@@ -69,9 +69,15 @@ document.addEventListener('DOMContentLoaded', function(){
               window.first_clicked = window.last_clicked //...last click becomes first click....
               from.value = to.value // ...it moved text from second input to first input.
               to.value = ''
+              if (window.last_clicked) {
+                document.getElementById('clear-input-to').setAttribute('style', 'display: none');
+              } else {
+                document.getElementById('clear-input-from').setAttribute('style', 'display: none');
+              }
               window.last_clicked = null
             } else if (window.last_clicked == e.get('target')) {
               window.last_clicked = null
+              document.getElementById('clear-input-to').setAttribute('style', 'display: none');
             }
 
             form_inputs.forEach(function(input) { // this itartion controls...
