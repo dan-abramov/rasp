@@ -1,49 +1,8 @@
 class PagesController < ApplicationController
   autocomplete :bus_station, :name
 
-
-  def schedule
-  end
-
   def results
     @schedule = session[:schedule]
-  end
-
-  def stations
-    # stations = Nokogiri::HTML(open("https://rasp.yandex.ru/thread/17_0_f9739655t9822055_r4253_1?departure=2019-08-14")).css('.ThreadTable__wrapperInner a')
-    # stations.each do |station|
-    #   id = station['href'][/\d+/]
-    #   name = station.text
-    #
-    #   begin
-    #     create_station = BusStation.new({ id: id, name: name })
-    #     create_station.save
-    #   rescue ActiveRecord::RecordNotUnique
-    #     next
-    #   end
-    # end
-  end
-
-  def arrivals
-    # doc = Nokogiri::HTML(open("https://rasp.yandex.ru/thread/11_4_f9739657t9755974_r4245_1?departure=2019-08-20"))
-    # @stations = []
-    # doc.css('.ThreadTable__rowStation').each do |tr|
-    #   station = tr.css('.ThreadTable__station')
-    #   station_id = ''
-    #   station.css('a').each do |link|
-    #     station_id = link['href'][/\d+/].to_i
-    #   end
-    #
-    #   if tr.css('.ThreadTable__arrival').text == '—'
-    #     time = tr.css('.ThreadTable__departure').text
-    #   else
-    #     time = tr.css('.ThreadTable__arrival').text
-    #   end
-    #
-    #   @stations << [station_id, station.text, time]
-    #   arrival = Arrival.new({ time: time, bus_id: 4, bus_station_id: station_id, route_id: 3})
-    #   arrival.save
-    # end
   end
 
   def get_schedule
@@ -60,18 +19,88 @@ class PagesController < ApplicationController
   end
 
   def find_schedule(from, to)
-    @schedule = []
-    from_id = BusStation.where(name: from)[0].id
-    to_id = BusStation.where(name: to)[0].id
-    @days = define_days
-    @days.each do |day, day_type|
-      day = day.to_s
-      @schedule << return_schedule(day, day_type, from_id, to_id)
-    end
-    session[:schedule] = @schedule
-    # redirect_to action: 'results'
+    first_station_id = BusStation.where(name: from)[0].id
+    second_station_id = BusStation.where(name: to)[0].id
+
+    find_in_yandex(first_station_id, second_station_id)
+    # @schedule = []
+    # @days = define_days
+    # @days.each do |day, day_type|
+    #   day = day.to_s
+    #   @schedule << return_schedule(day, day_type, first_station_id, second_station_id)
+    # end
+    # session[:schedule] = @schedule
   end
 
+  def find_in_yandex(first_station, second_station)
+    @schedule = [[]]
+    url = "https://api.rasp.yandex.net/v3.0/search/?from=#{first_station}&to=#{second_station}&apikey=#{Rails.application.secrets[:yandex_rasp]}
+           &format=json&date=#{(Time.now.utc + 3*60*60).to_s.split.first}"
+
+    routes = Faraday.new(url: url) do |faraday|
+      faraday.request  :url_encoded
+      faraday.response :json, content_type: /\bjson$/
+      faraday.adapter  Faraday.default_adapter
+    end
+
+    routes.get.body['segments'].each do |route|
+      departure_time = route['departure'].split('T')[1].split('+')[0]
+      if departure_time > Time.now.utc + 3.hours && departure_time <= Time.now.utc + 5.hours
+        save_route(route)
+        arrival_time = route['arrival'].split('T')[1].split('+')[0]
+        arrival_time = "#{arrival_time.split(':')[0]}:#{arrival_time.split(':')[1]}"
+        bus_number = route['thread']['number']
+        departure_time = "#{departure_time.split(':')[0]}:#{departure_time.split(':')[1]}"
+        @schedule[0] << [bus_number, departure_time, arrival_time]
+      else
+        next
+      end
+    end
+  end
+
+  def save_route(route)
+    begin
+      new_route = Route.new({ id: route['thread']['uid'], bus_number: route['thread']['number'], title: route['thread']['title'], day: 'weekday' })
+      new_route.save
+      save_route_arrivals(route['thread']['uid'])
+    rescue ActiveRecord::RecordNotUnique
+      existing_route = Route.find(route['thread']['uid'])
+      if existing_route.created_at < (Time.now.utc + 3.hours) - 2.days
+        existing_route.destroy!
+        new_route = Route.new({ id: route['thread']['uid'], bus_number: route['thread']['number'], title: route['thread']['title'], day: 'weekday' })
+        new_route.save
+        save_route_arrivals(route['thread']['uid'])
+      end
+    end
+  end
+
+  def save_route_arrivals(route_id)
+    url = "https://api.rasp.yandex.net/v3.0/thread/?apikey=#{Rails.application.secrets[:yandex_rasp]}&format=json&uid=#{route_id}&lang=ru_RU&show_systems=all"
+
+    route = Faraday.new(url: url) do |faraday|
+      faraday.request  :url_encoded
+      faraday.response :json, content_type: /\bjson$/
+      faraday.adapter  Faraday.default_adapter
+    end
+
+    route.get.body['stops'].each do |arrival|
+      if arrival['departure']
+        time = arrival['departure'].split(' ')[1]
+      else
+        time = arrival['arrival'].split(' ')[1]
+      end
+
+      begin
+        bus_station = BusStation.find(arrival['station']['code'])
+      rescue ActiveRecord::RecordNotFound
+        bus_station = BusStation.new({ id: arrival['station']['code'], name: arrival['station']['title'] })
+        bus_station.save
+      end
+
+      new_arrival = Arrival.new({ time: time, bus_station_id: bus_station.id, route_id: route_id })
+      new_arrival.save
+    end
+  end
 
   def define_days #this method helps to define: need user to get schedule on next day or not
     needed_days = {}
@@ -83,7 +112,7 @@ class PagesController < ApplicationController
       needed_days[:current_day] = 'sunday'
     end
 
-    if Date.tomorrow.day == (Time.now + 12.hours).day #if day ends web-service shows schedule on next day
+    if Date.tomorrow.day == (Time.now + 2.hours).day #if day ends web-service shows schedule on next day
       if Date.tomorrow.on_weekday? #we need to know weekday for database
         needed_days[:next_day] = 'weekday'
       elsif Date.tomorrow.saturday?
@@ -122,31 +151,4 @@ class PagesController < ApplicationController
     end
     schedule = schedule.sort_by { |time| time[1] }
   end
-
-  # def find_buses(from, to)
-  #   @schedule = []
-  #   station_from_id = BusStation.where(name: from)[0].id
-  #   station_to_id = BusStation.where(name: to)[0].id
-  #
-  #   Route.all.each do |route|
-  #     route_bus_stations = route.arrivals.sort_by(&:time).pluck(:bus_station_id)
-  #
-  #     from_index = route_bus_stations.index(station_from_id)
-  #     to_index = route_bus_stations.index(station_to_id)
-  #
-  #     if from_index && to_index
-  #       if from_index < to_index
-  #
-  #         time_from = route.arrivals.where(bus_station_id: station_from_id)[0].time
-  #         time_to = route.arrivals.where(bus_station_id: station_to_id)[0].time
-  #         @schedule << [time_from.strftime('%H:%M'), time_to.strftime('%H:%M'), Bus.find(route.bus_id).number]
-  #       end
-  #     end
-  #   end
-  #   @schedule = @schedule.sort_by do |time|
-  #     time.first
-  #   end
-  #   session[:schedule] = @schedule
-  #   redirect_to action: 'results'
-  # end
 end
