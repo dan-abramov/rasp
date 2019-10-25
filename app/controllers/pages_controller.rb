@@ -1,6 +1,7 @@
 class PagesController < ApplicationController
-  autocomplete :bus_station, :name
+  include SearchHelper
 
+  autocomplete :bus_station, :name
   def results
     @schedule = session[:schedule]
   end
@@ -9,20 +10,27 @@ class PagesController < ApplicationController
     respond_to do |format|
       format.js
     end
-    find_schedule(route_params['from'], route_params['to'])
+    if route_params['day'] == 'сегодня'
+      day = Time.now.utc + 3.hours
+    elsif route_params['day'] == 'завтра'
+      day = Time.now.utc + 3.hours + 1.day
+    end
+    find_schedule(route_params['from'], route_params['to'], day)
   end
 
   private
 
   def route_params
-    params.require(:route).permit(:from, :to)
+    params.require(:route).permit(:from, :to, :day)
   end
 
-  def find_schedule(from, to)
+  def find_schedule(from, to, day)
     first_station_id = BusStation.where(name: from)[0].id
     second_station_id = BusStation.where(name: to)[0].id
 
-    find_in_yandex(first_station_id, second_station_id)
+    @schedule = find_in_yandex(first_station_id, second_station_id, day)
+    unless @schedule #а что если придет часть информации только?
+    end
     # @schedule = []
     # @days = define_days
     # @days.each do |day, day_type|
@@ -30,76 +38,6 @@ class PagesController < ApplicationController
     #   @schedule << return_schedule(day, day_type, first_station_id, second_station_id)
     # end
     # session[:schedule] = @schedule
-  end
-
-  def find_in_yandex(first_station, second_station)
-    @schedule = [[]]
-    url = "https://api.rasp.yandex.net/v3.0/search/?from=#{first_station}&to=#{second_station}&apikey=#{Rails.application.secrets[:yandex_rasp]}
-           &format=json&date=#{(Time.now.utc + 3*60*60).to_s.split.first}"
-
-    routes = Faraday.new(url: url) do |faraday|
-      faraday.request  :url_encoded
-      faraday.response :json, content_type: /\bjson$/
-      faraday.adapter  Faraday.default_adapter
-    end
-
-    routes.get.body['segments'].each do |route|
-      departure_time = route['departure'].split('T')[1].split('+')[0]
-      if departure_time > Time.now.utc + 3.hours && departure_time <= Time.now.utc + 5.hours
-        save_route(route)
-        arrival_time = route['arrival'].split('T')[1].split('+')[0]
-        arrival_time = "#{arrival_time.split(':')[0]}:#{arrival_time.split(':')[1]}"
-        bus_number = route['thread']['number']
-        departure_time = "#{departure_time.split(':')[0]}:#{departure_time.split(':')[1]}"
-        @schedule[0] << [bus_number, departure_time, arrival_time]
-      else
-        next
-      end
-    end
-  end
-
-  def save_route(route)
-    begin
-      new_route = Route.new({ id: route['thread']['uid'], bus_number: route['thread']['number'], title: route['thread']['title'], day: 'weekday' })
-      new_route.save
-      save_route_arrivals(route['thread']['uid'])
-    rescue ActiveRecord::RecordNotUnique
-      existing_route = Route.find(route['thread']['uid'])
-      if existing_route.created_at < (Time.now.utc + 3.hours) - 2.days
-        existing_route.destroy!
-        new_route = Route.new({ id: route['thread']['uid'], bus_number: route['thread']['number'], title: route['thread']['title'], day: 'weekday' })
-        new_route.save
-        save_route_arrivals(route['thread']['uid'])
-      end
-    end
-  end
-
-  def save_route_arrivals(route_id)
-    url = "https://api.rasp.yandex.net/v3.0/thread/?apikey=#{Rails.application.secrets[:yandex_rasp]}&format=json&uid=#{route_id}&lang=ru_RU&show_systems=all"
-
-    route = Faraday.new(url: url) do |faraday|
-      faraday.request  :url_encoded
-      faraday.response :json, content_type: /\bjson$/
-      faraday.adapter  Faraday.default_adapter
-    end
-
-    route.get.body['stops'].each do |arrival|
-      if arrival['departure']
-        time = arrival['departure'].split(' ')[1]
-      else
-        time = arrival['arrival'].split(' ')[1]
-      end
-
-      begin
-        bus_station = BusStation.find(arrival['station']['code'])
-      rescue ActiveRecord::RecordNotFound
-        bus_station = BusStation.new({ id: arrival['station']['code'], name: arrival['station']['title'] })
-        bus_station.save
-      end
-
-      new_arrival = Arrival.new({ time: time, bus_station_id: bus_station.id, route_id: route_id })
-      new_arrival.save
-    end
   end
 
   def define_days #this method helps to define: need user to get schedule on next day or not
