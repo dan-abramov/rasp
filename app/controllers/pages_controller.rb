@@ -11,9 +11,9 @@ class PagesController < ApplicationController
       format.js
     end
     if route_params['day'] == 'сегодня'
-      day = Time.now.utc + 3.hours
+      day = { today: Time.now.utc + 3.hours }
     elsif route_params['day'] == 'завтра'
-      day = Time.now.utc + 3.hours + 1.day
+      day = { tomorrow: Time.now.utc + 3.hours + 1.day }
     end
     find_schedule(route_params['from'], route_params['to'], day)
   end
