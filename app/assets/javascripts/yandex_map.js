@@ -6,6 +6,10 @@ document.addEventListener('DOMContentLoaded', function(){
         center: [56.74258201923115, 37.15819910393005],
         zoom: 13
       });
+
+      myMap.controls.remove('typeSelector');
+      myMap.controls.remove('searchControl');
+
       var busStationArray = [['Дубна, улица Березняка', [56.763211033373835,37.144266405296484]],
                              ['Улица Мичурина', [56.75130625311628,37.20256463324331]],
                              ['Стадион', [56.755104548238606,37.12879606386732]],
@@ -27,24 +31,24 @@ document.addEventListener('DOMContentLoaded', function(){
         var from = document.getElementById('route_from');
         var to = document.getElementById('route_to');
         var form_inputs = [from, to]
-        window.first_clicked = null
-        window.last_clicked = null
+        window.first_station = null
+        window.second_station = null
 
         placemark.events
         .add('click', function (e) {
           if (e.get('target')['properties']['_data']['clicked'] == 0) {
             e.get('target')['properties']['_data']['clicked'] = 1
 
-            if (window.last_clicked) {
-              window.last_clicked.options.set('iconColor', '#3caa3c');
-              window.last_clicked['properties']['_data']['clicked'] = 0
+            if (window.second_station && window.first_station) { //to avoid multiple choice (more than 2) 
+              window.second_station.options.set('iconColor', '#3caa3c');
+              window.second_station['properties']['_data']['clicked'] = 0
               to.value = ''
             };
 
-            if (!window.first_clicked) {
-              window.first_clicked = e.get('target');
-            } else if (window.first_clicked) {
-              window.last_clicked = e.get('target');
+            if (!window.first_station) {
+              window.first_station = e.get('target');
+            } else if (window.first_station) {
+              window.second_station = e.get('target');
             }
 
             e.get('target').options.set('iconColor', 'red'); //here changes color of placemark
@@ -65,18 +69,12 @@ document.addEventListener('DOMContentLoaded', function(){
             var station = e.get('target')['properties']['_data']['hintContent'];
 
 
-            if (window.first_clicked == e.get('target')) {
-              window.first_clicked = window.last_clicked //...last click becomes first click....
-              from.value = to.value // ...it moved text from second input to first input.
-              to.value = ''
-              if (window.last_clicked) {
-                document.getElementById('clear-input-to').setAttribute('style', 'display: none');
-              } else {
-                document.getElementById('clear-input-from').setAttribute('style', 'display: none');
-              }
-              window.last_clicked = null
-            } else if (window.last_clicked == e.get('target')) {
-              window.last_clicked = null
+            if (window.first_station == e.get('target')) {
+              from.value = ''
+              document.getElementById('clear-input-from').setAttribute('style', 'display: none');
+              window.first_station = null
+            } else if (window.second_station == e.get('target')) {
+              window.second_station = null
               document.getElementById('clear-input-to').setAttribute('style', 'display: none');
             }
 

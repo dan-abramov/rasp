@@ -29,9 +29,9 @@ class PagesController < ApplicationController
     first_station_id = BusStation.where(name: from)[0].id
     second_station_id = BusStation.where(name: to)[0].id
 
-    # @schedule = find_in_yandex(first_station_id, second_station_id, day)
+    @schedule = find_in_yandex(first_station_id, second_station_id, day)
 
-    @schedule = return_schedule(day, first_station_id, second_station_id)
+    # @schedule = return_schedule(day, first_station_id, second_station_id)
   end
 
 
