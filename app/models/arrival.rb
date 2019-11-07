@@ -20,15 +20,13 @@ class Arrival < ApplicationRecord
         time = arrival['arrival'].split(' ')[1]
       end
 
-      begin
+      if BusStation.find(arrival['station']['code'])
         bus_station = BusStation.find(arrival['station']['code'])
-      rescue ActiveRecord::RecordNotFound
-        bus_station = BusStation.new({ id: arrival['station']['code'], name: arrival['station']['title'] })
-        bus_station.save
+      else
+        bus_station = BusStation.create!({ id: arrival['station']['code'], name: arrival['station']['title'] })
       end
 
-      new_arrival = Arrival.new({ time: time, bus_station_id: bus_station.id, route_id: route_id })
-      new_arrival.save
+      Arrival.create!({ time: time, bus_station_id: bus_station.id, route_id: route_id })
     end
   end
 end
