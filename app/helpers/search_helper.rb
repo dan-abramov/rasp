@@ -13,31 +13,39 @@ module SearchHelper
       routes = get_routes_from_yandex(first_station, second_station, day[:today])
       day = day[:today]
 
-      routes.get.body['segments'].each do |route|
-        departure_time = route['departure'].split('T')[1].split('+')[0]
-        if departure_time > Time.now.utc + 3.hours
+      if routes.get.body['segments']
+        routes.get.body['segments'].each do |route|
+          departure_time = route['departure'].split('T')[1].split('+')[0]
+          if departure_time > Time.now.utc + 3.hours
+            Route.save_new(route, day)
+            arrival_time = route['arrival'].split('T')[1].split('+')[0]
+            arrival_time = "#{arrival_time.split(':')[0]}:#{arrival_time.split(':')[1]}"
+            bus_number = route['thread']['number']
+            departure_time = "#{departure_time.split(':')[0]}:#{departure_time.split(':')[1]}"
+            schedule << [bus_number, departure_time, arrival_time]
+          else
+            next
+          end
+        end
+      else
+        schedule = nil
+      end
+    elsif day[:tomorrow]
+      routes = get_routes_from_yandex(first_station, second_station, day[:tomorrow])
+      day = day[:tomorrow]
+
+      if routes.get.body['segments']
+        routes.get.body['segments'].each do |route|
+          departure_time = route['departure'].split('T')[1].split('+')[0]
           Route.save_new(route, day)
           arrival_time = route['arrival'].split('T')[1].split('+')[0]
           arrival_time = "#{arrival_time.split(':')[0]}:#{arrival_time.split(':')[1]}"
           bus_number = route['thread']['number']
           departure_time = "#{departure_time.split(':')[0]}:#{departure_time.split(':')[1]}"
           schedule << [bus_number, departure_time, arrival_time]
-        else
-          next
         end
-      end
-    elsif day[:tomorrow]
-      routes = get_routes_from_yandex(first_station, second_station, day[:tomorrow])
-      day = day[:tomorrow]
-
-      routes.get.body['segments'].each do |route|
-        departure_time = route['departure'].split('T')[1].split('+')[0]
-        Route.save_new(route, day)
-        arrival_time = route['arrival'].split('T')[1].split('+')[0]
-        arrival_time = "#{arrival_time.split(':')[0]}:#{arrival_time.split(':')[1]}"
-        bus_number = route['thread']['number']
-        departure_time = "#{departure_time.split(':')[0]}:#{departure_time.split(':')[1]}"
-        schedule << [bus_number, departure_time, arrival_time]
+      else
+        schedule = nil
       end
     end
 

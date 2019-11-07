@@ -1,35 +1,42 @@
 <br>
 <div class="container" style="padding: 50px;">
   <!-- <a class="back-to-map" onclick="location.href='/pages/schedule'"><i class="fa fa-arrow-left"></i> Назад</a> -->
-  <% @schedule.each do |bus| %>
-    <div class="row" style='border-bottom: solid grey 1px;
-                            height: 60px;
-                            font-size: 13px;
-                            color: black;
-                            display: flex;
-                            justify-content:space-between'>
-      <div class="schedule-res">
-        <div class="schedule-column-annotation">
-          <i class="fa fa-bus" style="color: red; font-size: 17px"></i>
+  <% if @schedule %>
+    <% @schedule.each do |bus| %>
+      <div class="row" style='border-bottom: solid grey 1px;
+                              height: 60px;
+                              font-size: 13px;
+                              color: black;
+                              display: flex;
+                              justify-content:space-between'>
+        <div class="schedule-res">
+          <div class="schedule-column-annotation">
+            <i class="fa fa-bus" style="color: red; font-size: 17px"></i>
+          </div>
+          <div style='display: flex; justify-content: center;'>
+            <div class="info"> <%= bus[0] %> </div>
+          </div>
         </div>
-        <div style='display: flex; justify-content: center;'>
-          <div class="info"> <%= bus[0] %> </div>
+        <div class="schedule-res">
+          <div class="schedule-column-annotation">
+            отправление
+          </div>
+          <div>
+            <div class="info"> <%= bus[1] %></div>
+          </div>
+        </div>
+        <div class="schedule-res">
+          <div class="schedule-column-annotation">
+            прибытие
+          </div>
+          <div class="info"> <%= bus[2] %></div>
         </div>
       </div>
-      <div class="schedule-res">
-        <div class="schedule-column-annotation">
-          отправление
-        </div>
-        <div>
-          <div class="info"> <%= bus[1] %></div>
-        </div>
-      </div>
-      <div class="schedule-res">
-        <div class="schedule-column-annotation">
-          прибытие
-        </div>
-        <div class="info"> <%= bus[2] %></div>
-      </div>
+    <% end %>
+  <% else %>
+    <div style="text-align:center">
+      Извините, расписание не было найдено.
+      Возможно, сегодня автобусы этим маршрутом не ходят. Или такие рейсы не предусмотрены в принципе.
     </div>
   <% end %>
 </div>

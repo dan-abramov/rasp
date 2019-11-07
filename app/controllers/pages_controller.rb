@@ -19,7 +19,6 @@ class PagesController < ApplicationController
     find_schedule(route_params['from'], route_params['to'], day)
   end
 
-  private
 
   def route_params
     params.require(:route).permit(:from, :to, :day)
@@ -59,6 +58,10 @@ class PagesController < ApplicationController
         schedule << [route.bus_number, departure.strftime('%H:%M'), arrival.strftime('%H:%M')]
       end
     end
-    schedule = schedule.sort_by { |time| time[1] }
+    if schedule == []
+      schedule = nil
+    else
+      schedule = schedule.sort_by { |time| time[1] }
+    end
   end
 end
